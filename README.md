@@ -1,7 +1,4 @@
-Aqui tens o modelo de README.md em Português e Inglês com as bandeiras, bem estruturado para ser lido facilmente em qualquer ecrã (computador ou telemóvel):
-PKG Merger (Termux)
-[ 🇧🇷 Português ] | [ 🇺🇸 English ]
-🇧🇷 Português
+🇧🇷 **Português**
 Um script em Bash simples e eficiente desenvolvido para o Termux no Android. Permite unificar ficheiros .pkg divididos (como Piece 0 e Piece 1) num único ficheiro final diretamente no telemóvel.
 Recurso
  * Nativo para Termux: Executa diretamente no Android sem necessidade de acesso root.
@@ -15,7 +12,8 @@ pkg install git -y && git clone https://github.com/luankayllon/pkg-merger.git &&
 Requisitos
  * Termux instalado no dispositivo Android.
  * Espaço livre suficiente no armazenamento (pelo menos o dobro do tamanho total dos ficheiros durante o processo).
-🇺🇸 English
+
+🇺🇸 **English**
 A simple and efficient Bash script designed for Termux on Android. It allows you to concatenate split .pkg files (such as Piece 0 and Piece 1) into a single output file directly on your mobile device.
 Features
  * Termux Native: Runs directly on Android without requiring root access.
