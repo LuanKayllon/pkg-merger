@@ -22,16 +22,16 @@ if [ "$lang_choice" == "2" ]; then
     LANG_TITLE="JUNÇÃO AUTOMÁTICA DE PKG"
     LANG_STORAGE_REQ="[!] A pedir permissão de armazenamento..."
     LANG_ERR_DOWNLOAD="[X] Não foi possível aceder à pasta Download."
-    LANG_SEARCHING="[+] A procurar ficheiros .pkg na pasta Download..."
+    LANG_SEARCHING="[+] A procurar ficheiros na pasta Download..."
     LANG_NO_FILES="[X] Nenhum ficheiro .pkg encontrado em /sdcard/Download."
-    LANG_FILES_FOUND="Ficheiros .pkg encontrados:"
-    LANG_PROMPT_PATTERN="Digita o padrão em comum dos ficheiros a juntar (ex: Piece, Jogo, ou * para TODOS): "
-    LANG_PROMPT_OUTPUT="Digita o nome do ficheiro FINAL (ex: JogoCompleto.pkg): "
+    LANG_FILES_FOUND="Ficheiros encontrados:"
+    LANG_PROMPT_PATTERN="Digita o padrão em comum dos ficheiros (ex: Piece, Jogo, ou * para TODOS): "
+    LANG_PROMPT_OUTPUT="Nome sugerido para o ficheiro final (prime Enter para aceitar ou digita outro): "
     LANG_NO_MATCH="[X] Nenhum ficheiro corresponde ao padrão indicado."
     LANG_PARTS_LIST="As seguintes partes serão unidas nesta ordem:"
     LANG_MERGING="[*] A juntar ficheiros..."
     LANG_WAIT="[*] Aguarda um momento, isto pode demorar alguns minutos..."
-    LANG_SUCCESS="[✓] Ficheiros unificados com sucesso!"
+    LANG_SUCCESS="[✓] Ficheiro .pkg unificado com sucesso!"
     LANG_SAVED_IN="[✓] Guardado em:"
     LANG_PROMPT_DELETE="Desejas apagar os ficheiros originais para poupar espaço? (s/n): "
     LANG_DELETED="[✓] Ficheiros originais removidos."
@@ -41,16 +41,16 @@ else
     LANG_TITLE="AUTOMATIC PKG MERGER"
     LANG_STORAGE_REQ="[!] Requesting storage permission..."
     LANG_ERR_DOWNLOAD="[X] Could not access the Download folder."
-    LANG_SEARCHING="[+] Searching for .pkg files in Download folder..."
+    LANG_SEARCHING="[+] Searching for files in Download folder..."
     LANG_NO_FILES="[X] No .pkg files found in /sdcard/Download."
-    LANG_FILES_FOUND="Found .pkg files:"
-    LANG_PROMPT_PATTERN="Enter the common pattern of the files to merge (e.g., Piece, Game, or * for ALL): "
-    LANG_PROMPT_OUTPUT="Enter the FINAL file name (e.g., CompleteGame.pkg): "
+    LANG_FILES_FOUND="Found files:"
+    LANG_PROMPT_PATTERN="Enter the common pattern of the files (e.g., Piece, Game, or * for ALL): "
+    LANG_PROMPT_OUTPUT="Suggested final file name (press Enter to accept or type another): "
     LANG_NO_MATCH="[X] No files match the given pattern."
     LANG_PARTS_LIST="The following parts will be merged in this order:"
     LANG_MERGING="[*] Merging files..."
     LANG_WAIT="[*] Please wait, this may take a few minutes..."
-    LANG_SUCCESS="[✓] Files merged successfully!"
+    LANG_SUCCESS="[✓] .pkg file merged successfully!"
     LANG_SAVED_IN="[✓] Saved in:"
     LANG_PROMPT_DELETE="Do you want to delete the original split files to save space? (y/n): "
     LANG_DELETED="[✓] Original files removed."
@@ -74,8 +74,8 @@ cd /sdcard/Download || { echo -e "${RED}$LANG_ERR_DOWNLOAD${NC}"; exit 1; }
 
 echo -e "${GREEN}$LANG_SEARCHING${NC}\n"
 
-# Listar ficheiros .pkg
-all_files=(*.pkg)
+# Listar ficheiros
+all_files=(*pkg* *.part*)
 if [ ! -e "${all_files[0]}" ]; then
     echo -e "${RED}$LANG_NO_FILES${NC}"
     exit 1
@@ -83,24 +83,55 @@ fi
 
 echo -e "$LANG_FILES_FOUND"
 for f in "${all_files[@]}"; do
-    echo -e "  - ${YELLOW}$f${NC}"
+    [ -f "$f" ] && echo -e "  - ${YELLOW}$f${NC}"
 done
 
 echo -e "\n${CYAN}---------------------------------------${NC}"
 read -p "$LANG_PROMPT_PATTERN" pattern
-read -p "$LANG_PROMPT_OUTPUT" output_name
 
-if [ -z "$pattern" ] || [ -z "$output_name" ]; then
+if [ -z "$pattern" ]; then
     echo -e "${RED}[X] Operação cancelada.${NC}"
     exit 1
 fi
 
-# Procurar e ordenar os ficheiros pelo nome (ex: Piece 0, Piece 1, Piece 2...)
-matched_files=($(ls *"$pattern"*.pkg 2>/dev/null | sort -V))
+# Procurar e ordenar os ficheiros correspondentes
+matched_files=($(ls *"$pattern"* 2>/dev/null | sort -V))
 
 if [ ${#matched_files[@]} -eq 0 ]; then
     echo -e "${RED}$LANG_NO_MATCH${NC}"
     exit 1
+fi
+
+# 1. Tentar extrair um nome automático limpando padrões numéricos/de parte do primeiro ficheiro
+first_file="${matched_files[0]}"
+
+# Remove extensão .pkg ou .part no final
+base_name="${first_file%.pkg}"
+base_name="${base_name%.part*}"
+
+# Limpa sufixos do tipo: .part01, _part1, .0, _0, Piece 0, Piece 1, etc.
+suggested_name=$(echo "$base_name" | sed -E 's/[._ -]?(part|piece)[._ -]?[0-9]+$//i' | sed -E 's/[._ -][0-9]+$//')
+
+# Garante que não fica vazio
+if [ -z "$suggested_name" ]; then
+    suggested_name="Output_Merged"
+fi
+
+# Exibir nome sugerido
+echo -e "\n$LANG_PROMPT_OUTPUT"
+echo -e "Default: ${GREEN}${suggested_name}.pkg${NC}"
+read -p "> " custom_name
+
+# Usar a sugestão se o utilizador só carregar em Enter
+if [ -z "$custom_name" ]; then
+    final_name="${suggested_name}.pkg"
+else
+    # Se o utilizador não escreveu .pkg no final, adiciona automaticamente
+    if [[ "$custom_name" != *.pkg ]]; then
+        final_name="${custom_name}.pkg"
+    else
+        final_name="$custom_name"
+    fi
 fi
 
 echo -e "\n${GREEN}$LANG_PARTS_LIST${NC}"
@@ -111,12 +142,12 @@ done
 echo -e "\n${YELLOW}$LANG_MERGING${NC}"
 echo -e "${YELLOW}$LANG_WAIT${NC}\n"
 
-# Juntar todos os ficheiros numa só linha de comando
-cat "${matched_files[@]}" > "$output_name"
+# Processo de junção
+cat "${matched_files[@]}" > "$final_name"
 
 if [ $? -eq 0 ]; then
     echo -e "${GREEN}$LANG_SUCCESS${NC}"
-    echo -e "${GREEN}$LANG_SAVED_IN /sdcard/Download/$output_name${NC}\n"
+    echo -e "${GREEN}$LANG_SAVED_IN /sdcard/Download/$final_name${NC}\n"
     
     read -p "$LANG_PROMPT_DELETE" confirm
     if [[ "$confirm" =~ $AFFIRMATIVE_REGEX ]]; then
