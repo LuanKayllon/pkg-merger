@@ -19,9 +19,9 @@ Um script Bash simples e eficiente, desenvolvido para Termux no Android, que per
 🚀 Como executar
 
 Abra o Termux e execute:
-
+```bash
 pkg install git -y && git clone https://github.com/luankayllon/pkg-merger.git && bash pkg-merger/merger.sh
-
+```
 «💡 Dica: O GitHub disponibiliza um botão de copiar no canto do bloco de código acima.»
 
 📋 Requisitos
@@ -54,9 +54,9 @@ A simple and efficient Bash script designed for Termux on Android. It allows you
 🚀 Quick Start
 
 Open Termux and run:
-
+```bash
 pkg install git -y && git clone https://github.com/luankayllon/pkg-merger.git && bash pkg-merger/merger.sh
-
+```
 📋 Requirements
 
 - 📱 Termux installed on your Android device.
